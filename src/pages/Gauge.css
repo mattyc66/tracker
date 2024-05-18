@@ -1,0 +1,37 @@
+.gauge-container {
+    position: relative;
+    width: 200px; /* Adjust width as needed */
+    height: 100px; /* Adjust height as needed */
+}
+
+.gauge {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(#3498db 0%, #3498db 25%, #ffdd57 25%, #ffdd57 50%, #ff5f6d 50%, #ff5f6d 75%, #a569bd 75%, #a569bd 100%); /* Adjust colors and stops as needed */
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.gauge-segment {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+}
+
+.gauge-labels {
+    position: absolute;
+    bottom: -20px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+.gauge-labels span {
+    position: absolute;
+    top: 0;
+    transform: translateX(-50%);
+}
