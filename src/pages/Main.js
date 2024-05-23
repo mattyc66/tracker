@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import GaugeComponent from 'react-gauge-component'
 import mqtt from 'mqtt';
-import { TileLayer, MapContainer, Marker, Popup } from 'react-leaflet';
+import { TileLayer, MapContainer, Marker, Popup, FeatureGroup } from 'react-leaflet';
+import 'leaflet-draw/dist/leaflet.draw.css';
+import { EditControl } from 'react-leaflet-draw';
 import L from 'leaflet';
+import 'react-notifications/lib/notifications.css';
+import {NotificationContainer, NotificationManager} from 'react-notifications';
 import "leaflet/dist/leaflet.css"
 import './Main.css';
 
@@ -12,6 +16,8 @@ const Main = () => {
     const [longitude, setLongitude] = useState('');
     const [latitude, setLatitude] = useState('');
     const [satellites, setSatellites] = useState(0);
+    const [boundary, setBoundary] = useState(null);
+    const [outOfBounds, setOutOfBounds] = useState(false);
 
     useEffect(() => {
         const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt');
@@ -58,6 +64,30 @@ const Main = () => {
 
     const gaugeValue = Math.min(Math.max(satellites, 0), 60);
 
+    const onCreated = (e) => {
+        setBoundary(e.layer.getLatLngs());
+        setOutOfBounds(false);
+    };
+
+    const onDeleted = () => {
+        setBoundary(null);
+        setOutOfBounds(false);
+    };
+
+    useEffect(() => {
+        if (boundary && latitude && longitude) {
+            const point = L.latLng(latitude, longitude);
+            const isInside = L.polygon(boundary).getBounds().contains(point);
+
+            if (!isInside && !outOfBounds) {
+                NotificationManager.warning('Tracker has left the defined boundary!');
+                setOutOfBounds(true);
+            } else if (isInside && outOfBounds) {
+                setOutOfBounds(false);
+            }
+        }
+    }, [boundary, latitude, longitude, outOfBounds]);
+
 
     return (
         <div className='main-container'>
@@ -101,8 +131,23 @@ const Main = () => {
                         </Popup>
                     </Marker>
                         )}
+                        <FeatureGroup>
+                        <EditControl
+                        position="topright"
+                        onCreated={onCreated}
+                        onDeleted={onDeleted}
+                        draw={{
+                            rectangle: false,
+                            circle: false,
+                            circlemarker: false,
+                            marker: false,
+                            polyline: false,
+                        }}
+                    />
+                    </FeatureGroup>
                 </MapContainer>
             </div>
+            <NotificationContainer />
         </div>
     );
 };
